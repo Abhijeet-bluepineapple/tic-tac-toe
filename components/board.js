@@ -1,49 +1,52 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 const boxes = ["-", "-", "-", "-", "-", "-", "-", "-", "-"];
 
-const isAllEqual = (arr) => arr.every((i) => i === arr[0]);
+const isAllEqual = (arr) => {
+  return arr.every((i) => i === arr[0]);
+};
 
 const isValid = (val) => val === 0 || val === 1;
 
 const getValueAtIndexs = (arr, indexArr) => indexArr.map((i) => arr[i]);
 
 const checkWin = (board) => {
+  let playerWon = null;
   // each 3 is same
-  if (isAllEqual(board.slice(0, 2)) && isValid(board[0])) {
-    return board[0];
+  if (isAllEqual(board.slice(0, 3)) && isValid(board[0])) {
+    playerWon = board[0] + "";
   }
 
-  if (isAllEqual(board.slice(3, 5)) && isValid(board[3])) {
-    return board[3];
+  if (isAllEqual(board.slice(3, 6)) && isValid(board[3])) {
+    playerWon = board[3] + "";
   }
 
-  if (isAllEqual(board.slice(6, 8)) && isValid(board[6])) {
-    return board[6];
+  if (isAllEqual(board.slice(6, 9)) && isValid(board[6])) {
+    playerWon = board[6] + "";
   }
 
   // each 3rd is same 0,3,6  1,4,7  2,5,8
   if (isAllEqual(getValueAtIndexs(board, [0, 3, 6])) && isValid(board[3])) {
-    return board[3];
+    playerWon = board[3] + "";
   }
 
   if (isAllEqual(getValueAtIndexs(board, [1, 4, 7])) && isValid(board[1])) {
-    return board[1];
+    playerWon = board[1] + "";
   }
 
   if (isAllEqual(getValueAtIndexs(board, [2, 5, 8])) && isValid(board[2])) {
-    return board[2];
+    playerWon = board[2] + "";
   }
 
   // 0, 4, 8
   if (isAllEqual(getValueAtIndexs(board, [0, 4, 8])) && isValid(board[0])) {
-    return board[0];
+    playerWon = board[0] + "";
   }
   // 2, 4, 6
   if (isAllEqual(getValueAtIndexs(board, [2, 4, 6])) && isValid(board[2])) {
-    return board[2];
+    playerWon = board[2] + "";
   }
-  return false;
+  return playerWon;
 };
 
 const Box = ({ id, value, onClick }) => {
@@ -76,6 +79,12 @@ const Board = (props) => {
 
   const [winner, setWinner] = useState(null);
 
+  useEffect(() => {
+    if (winner === null && boxState.every((box) => box !== "-")) {
+      reset();
+    }
+  }, [boxState]);
+
   const switchPlayer = () => {
     setPlayer(player === 0 ? 1 : 0);
   };
@@ -89,22 +98,26 @@ const Board = (props) => {
   const setBox = (player, box) => {
     let updatedBoxes = [...boxState];
     updatedBoxes[box] = player;
-
+    let isPlayerWon = checkWin(updatedBoxes);
+    if (isPlayerWon) {
+      setWinner(isPlayerWon);
+    }
     setBoxState(updatedBoxes);
   };
 
   const handleOnBoxClick = (box) => {
     setBox(player, box.id);
-    let isPlayerWon = checkWin(boxState);
-    if (isPlayerWon) {
-      setWinner(isPlayerWon);
-    }
+
     switchPlayer();
   };
 
   return (
     <div>
-      {winner === null ? (
+      {winner === "1" || winner === "0" ? (
+        <div class="text-white text-lg p-8 bg-green-200">
+          Player {winner === "0" ? "1" : "2"} Won !!!{" "}
+        </div>
+      ) : (
         <div className="w-48 bg-blue-200 grid grid-cols-3 grid-flow-row">
           {boxState.map((value, index) => (
             <Box
@@ -115,8 +128,6 @@ const Board = (props) => {
             />
           ))}
         </div>
-      ) : (
-        <div> Player {winner} Won !!! </div>
       )}
       <div class="w-full flex justify-center items-center mt-4">
         <button
